@@ -1,0 +1,42 @@
+[project]
+name = "quant-helper"
+version = "0.1.0"
+description = "A simple Python library for quantitative finance analysis and backtesting trading strategies"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.20.0",
+    "pandas>=1.3.0",
+    "python-dateutil>=2.8.0",
+    "requests>=2.25.0",
+]
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+keywords = ["quantitative", "finance", "trading", "backtesting", "cryptocurrency", "quant"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Developers",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/quant-helper"
+Documentation = "https://github.com/yourusername/quant-helper#readme"
+Repository = "https://github.com/yourusername/quant-helper"
+Issues = "https://github.com/yourusername/quant-helper/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/quant_helper"]
