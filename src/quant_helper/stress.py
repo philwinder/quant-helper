@@ -23,7 +23,7 @@ class ScenarioTester:
         """
         if equity_curve.empty:
             raise ValueError("equity_curve is empty.")
-        shocked = equity_curve.copy()
+        shocked = equity_curve.astype(float).copy()
         shocked.iloc[-1] *= 1 + shock_pct
         return shocked
 

@@ -90,6 +90,8 @@ class MarketData:
             prices_df = prices_df[['open', 'high', 'low', 'close', 'volume']]
 
             return prices_df
+        except requests.RequestException as e:
+            raise requests.RequestException(f"Failed to fetch data for {coin_id}: {str(e)}")
 
     def fetch_equity_prices(
         self,
@@ -137,9 +139,6 @@ class MarketData:
         )
 
         return data[['open', 'high', 'low', 'close', 'volume']]
-
-        except requests.RequestException as e:
-            raise requests.RequestException(f"Failed to fetch data for {coin_id}: {str(e)}")
 
     def _fetch_volume(self, coin_id: str, from_timestamp: int, to_timestamp: int) -> pd.Series:
         """
