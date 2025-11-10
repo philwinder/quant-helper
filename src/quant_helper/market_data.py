@@ -2,10 +2,11 @@
 Market data fetcher for cryptocurrency prices using CoinGecko API.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List
 import requests
 import pandas as pd
+import yfinance as yf
 
 
 class MarketData:
@@ -89,6 +90,53 @@ class MarketData:
             prices_df = prices_df[['open', 'high', 'low', 'close', 'volume']]
 
             return prices_df
+
+    def fetch_equity_prices(
+        self,
+        symbol: str,
+        start_date: datetime,
+        end_date: datetime,
+        interval: str = "1d"
+    ) -> pd.DataFrame:
+        """
+        Fetch OHLCV data for equities, ETFs, or FX pairs via Yahoo Finance.
+
+        Args:
+            symbol: Yahoo Finance ticker (e.g., 'AAPL', 'SPY', 'EURUSD=X')
+            start_date: Start of price history
+            end_date: End of price history
+            interval: Sampling interval supported by yfinance (default: daily)
+
+        Returns:
+            DataFrame with columns: open, high, low, close, volume
+        """
+        if start_date >= end_date:
+            raise ValueError("start_date must be before end_date")
+
+        data = yf.download(
+            symbol,
+            start=start_date,
+            end=end_date + timedelta(days=1),
+            interval=interval,
+            auto_adjust=False,
+            progress=False
+        )
+
+        if data.empty:
+            raise ValueError(f"No price data returned for symbol '{symbol}'")
+
+        data = data.rename(
+            columns={
+                'Open': 'open',
+                'High': 'high',
+                'Low': 'low',
+                'Close': 'close',
+                'Adj Close': 'adj_close',
+                'Volume': 'volume'
+            }
+        )
+
+        return data[['open', 'high', 'low', 'close', 'volume']]
 
         except requests.RequestException as e:
             raise requests.RequestException(f"Failed to fetch data for {coin_id}: {str(e)}")
