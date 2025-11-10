@@ -13,6 +13,7 @@ from .backtest import Backtester
 from .costs import TransactionCostModel
 from .factors import FactorAnalyzer
 from .optimize import PortfolioOptimizer
+from .stress import ScenarioTester
 
 __all__ = [
     "MarketData",
@@ -21,5 +22,6 @@ __all__ = [
     "TransactionCostModel",
     "FactorAnalyzer",
     "PortfolioOptimizer",
+    "ScenarioTester",
 ]
 __version__ = "0.1.0"
