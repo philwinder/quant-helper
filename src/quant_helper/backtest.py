@@ -2,13 +2,14 @@
 Backtesting engine for testing trading strategies on historical data.
 """
 
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
 from datetime import datetime
 import pandas as pd
 import numpy as np
 
 from .market_data import MarketData
 from .performance import PerformanceAnalyzer
+from .costs import TransactionCostModel
 
 
 class Backtester:
@@ -23,7 +24,8 @@ class Backtester:
         self,
         market_data: MarketData,
         performance_analyzer: PerformanceAnalyzer,
-        initial_capital: float = 10000.0
+        initial_capital: float = 10000.0,
+        cost_model: Optional[TransactionCostModel] = None
     ):
         """
         Initialize the Backtester.
@@ -36,6 +38,7 @@ class Backtester:
         self._market_data = market_data
         self._performance = performance_analyzer
         self._initial_capital = initial_capital
+        self._cost_model = cost_model
         self._results = None
 
     def run_strategy(
@@ -77,7 +80,7 @@ class Backtester:
         positions = positions.reindex(prices_df.index, method='ffill').fillna(0.0)
 
         # Calculate strategy returns
-        portfolio_values = self._calculate_portfolio_values(
+        portfolio_values, cumulative_costs = self._calculate_portfolio_values(
             prices_df['close'],
             positions
         )
@@ -99,6 +102,7 @@ class Backtester:
             'benchmark_values': benchmark_values,
             'positions': positions,
             'prices': prices_df,
+            'transaction_costs': cumulative_costs,
             'strategy_metrics': self._performance.generate_performance_summary(
                 portfolio_values,
                 strategy_returns
@@ -115,7 +119,7 @@ class Backtester:
         self,
         prices: pd.Series,
         positions: pd.Series
-    ) -> pd.Series:
+    ) -> (pd.Series, pd.Series):
         """
         Calculate portfolio value over time based on positions.
 
@@ -134,10 +138,15 @@ class Backtester:
         shifted_positions = positions.shift(1).fillna(0.0)
         strategy_returns = shifted_positions * price_returns
 
+        costs = pd.Series(0.0, index=prices.index)
+        if self._cost_model:
+            costs = self._cost_model.cost_series(positions, prices)
+            strategy_returns -= costs / self._initial_capital
+
         # Calculate cumulative portfolio value
         portfolio_values = self._initial_capital * (1 + strategy_returns).cumprod()
 
-        return portfolio_values
+        return portfolio_values, costs.cumsum()
 
     def _calculate_buy_and_hold(self, prices: pd.Series) -> pd.Series:
         """
@@ -190,6 +199,9 @@ class Backtester:
         print(f"Period: {results['start_date'].date()} to {results['end_date'].date()}")
         print(f"Initial Capital: ${results['initial_capital']:,.2f}")
         print(f"Final Value: ${results['final_value']:,.2f}")
+        if self._cost_model:
+            total_cost = results['transaction_costs'].iloc[-1]
+            print(f"Total Costs: ${total_cost:,.2f}")
         print("-" * 60)
 
         print("\nSTRATEGY PERFORMANCE:")
